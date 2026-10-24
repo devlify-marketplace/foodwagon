@@ -7,18 +7,23 @@
   <div class="food-hero__layout">
     <div class="food-hero__copy">
       <p class="food-hero__eyebrow"><span class="food-hero__eyebrow-mark" aria-hidden="true">✦</span> FOODWAGON</p>
-      <p class="food-hero__setup" role="status"><strong>PREVIEW</strong><span>Ordering and payment are not available yet.</span></p>
+      <p class="food-hero__setup" role="status">
+        {% if checkout_mode == "demo" %}<strong>DEMO MODE</strong><span>Rehearse the basket; no real payment or fulfilment.</span>
+        {% elif checkout_mode == "test" %}<strong>PAYSTACK TEST</strong><span>Test checkout only; no real funds or fulfilment.</span>
+        {% elif checkout_mode == "live" %}<strong>LIVE CHECKOUT</strong><span>Verified menu and service settings are active.</span>
+        {% else %}<strong>CHECKOUT OFFLINE</strong><span>Live ordering is not approved or configured.</span>{% endif %}
+      </p>
       <h1 id="foodwagon-hero-title">Order <span class="food-hero__script">your</span><br><span class="food-hero__script">favorite</span><span class="food-hero__headline-last"> foods</span></h1>
-      <p class="food-hero__intro">Menu, delivery, pickup, and service details are being configured. Contact Foodwagon for confirmed information.</p>
+      <p class="food-hero__intro">{% if checkout_mode == "demo" %}Explore the editable sample menu and rehearse checkout. Demo orders are never sent for fulfilment.{% elif checkout_mode == "test" %}Use synthetic customer details to test Paystack checkout. No real funds or fulfilment.{% elif checkout_mode == "live" %}Choose from the verified menu and select delivery or pickup at checkout.{% else %}Menu and service details are being configured. Live checkout is currently disabled.{% endif %}</p>
       <div class="food-hero__actions">
         <a class="btn food-hero__menu-btn" href="#menu">
           <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="m4 7 8-4 8 4-8 4-8-4Zm0 5 8 4 8-4M4 17l8 4 8-4" fill="none" stroke="currentColor" stroke-linejoin="round" stroke-width="1.7"/></svg>
           Menu
         </a>
-        <button class="btn food-hero__order-btn" type="button" data-open-order>
+        {% if cart_enabled %}<a class="btn food-hero__order-btn" href="{% url 'basket' %}">
           <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M6 8h12l1.2 12H4.8L6 8Z" fill="none" stroke="currentColor" stroke-linejoin="round" stroke-width="1.7"/><path d="M9 9V6a3 3 0 0 1 6 0v3" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="1.7"/></svg>
           Order now
-        </button>
+        </a>{% else %}<button class="btn food-hero__order-btn" type="button" data-open-order>Order now</button>{% endif %}
       </div>
       <div class="food-category-area" aria-label="Illustrative food categories; these are not published menu items">
         <div class="food-category-carousel">
@@ -59,7 +64,7 @@
   <div class="food-picks__heading">
     <p class="food-section-kicker">MENU INFORMATION</p>
     <h2 id="menu-title">Menu</h2>
-    {% if query %}<p>Search results for “{{ query }}”</p>{% else %}<p>Only owner-configured menu items can appear here.</p>{% endif %}
+    {% if query %}<p>Search results for “{{ query }}”</p>{% elif checkout_mode == "demo" %}<p>Sample items and prices are clearly labelled DEMO. Replace them in staff admin.</p>{% else %}<p>Only owner-configured menu items can appear here.</p>{% endif %}
   </div>
   {% if items %}
     {% for category in categories %}
@@ -72,11 +77,18 @@
               <div class="card h-100">
                 {% if item.image %}<img class="card-img-top" src="{% static item.image %}" alt="{{ item.name }}{% if item.is_demo %} demo image{% endif %}" loading="lazy">{% endif %}
                 <div class="card-body">
-                  {% if item.is_demo %}<p class="badge bg-secondary">SAMPLE · NOT FOR SALE</p>{% endif %}
+                  {% if item.is_demo or item.category.is_demo %}<p class="badge bg-secondary">SAMPLE · NOT FOR SALE</p>{% endif %}
                   <h4>{{ item.name }}</h4>
                   <p>{{ item.description }}</p>
-                  <p class="fw-bold">₦{{ item.price_ngn|floatformat:2 }}{% if item.is_demo %} <small>illustrative sample price</small>{% endif %}</p>
-                  <p class="small">Online ordering is not available yet.</p>
+                  <p class="fw-bold">₦{{ item.price_ngn|floatformat:2 }}{% if item.is_demo or item.category.is_demo %} <small>illustrative sample price</small>{% endif %}</p>
+                  {% if cart_enabled %}
+                    <form method="post" action="{% url 'add_to_basket' item.pk %}" class="d-flex align-items-center gap-2">
+                      {% csrf_token %}
+                      <label class="visually-hidden" for="quantity-{{ item.pk }}">Quantity for {{ item.name }}</label>
+                      <input class="form-control" id="quantity-{{ item.pk }}" name="quantity" type="number" min="1" max="20" value="1" inputmode="numeric" style="max-width:5rem">
+                      <button class="btn btn-success" type="submit">Add to basket</button>
+                    </form>
+                  {% else %}<p class="small">Ordering is disabled until business and payment settings are verified.</p>{% endif %}
                 </div>
               </div>
             </article>
@@ -93,8 +105,8 @@
   {% else %}
     <div class="border rounded p-4 mt-3">
       <h3>Menu details have not been configured</h3>
-      <p>No dishes, prices, pickup location, delivery areas, fees, or operating hours are published yet. The owner can add verified details through the staff admin.</p>
-      <p>Ordering and payment are not available.</p>
+      <p>No owner-configured dishes, prices, pickup location, delivery areas, fees, or operating hours are published yet. The owner can add verified details through the staff admin.</p>
+      <p>Demo orders can be enabled locally; live ordering and payment remain disabled until business settings are verified.</p>
     </div>
   {% endif %}
   <div class="mt-4">
@@ -106,6 +118,9 @@
 <section class="container pb-5 foodwagon-service-note" id="services" aria-labelledby="services-title">
   <p class="food-section-kicker">SERVICE INFORMATION</p>
   <h2 id="services-title">Delivery and pickup details</h2>
-  <p>Service areas, a pickup location, fees, hours, and payment setup have not been confirmed. The delivery and pickup controls are shown for preview only; they do not accept addresses or create orders.</p>
+  {% if checkout_mode == "demo" %}<p>This is a DEMO checkout. Sample delivery zones, prices, and contact details are fictional; do not use real customer data. No order is sent to a kitchen or driver.</p>
+  {% elif checkout_mode == "test" %}<p>Paystack TEST mode only. Use synthetic customer details; transactions use Paystack's test environment and do not collect real funds or trigger fulfilment.</p>
+  {% elif checkout_mode == "live" %}<p>Current delivery and pickup settings are configured by the owner. Check the final total and current terms before confirming.</p>
+  {% else %}<p>Service areas, pickup, fees, hours, privacy/terms, and payment settings must be configured and owner-verified before checkout is enabled.</p>{% endif %}
 </section>
 {% endblock %}

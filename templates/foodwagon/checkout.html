@@ -1,0 +1,87 @@
+{% extends 'foodwagon/base.html' %}
+{% block title %}Checkout | Foodwagon{% endblock %}
+{% block content %}
+<section class="container py-5" aria-labelledby="checkout-title">
+  <p class="food-section-kicker">{% if checkout_mode == "demo" %}DEMO CHECKOUT{% elif checkout_mode == "test" %}PAYSTACK TEST CHECKOUT{% else %}SECURE CHECKOUT{% endif %}</p>
+  <h1 id="checkout-title">Checkout</h1>
+  {% if checkout_mode == "demo" %}<div class="alert alert-warning"><strong>DEMO ONLY — no payment or fulfilment.</strong> Menu items, prices, area, and fee are fictional examples. Use synthetic contact data only; do not enter real customer details.</div>
+  {% elif checkout_mode == "test" %}<div class="alert alert-warning"><strong>PAYSTACK TEST MODE — no real funds or fulfilment.</strong> Use synthetic customer details and Paystack's official test data. The next step opens Paystack's test checkout.</div>
+  {% elif checkout_mode == "live" %}<div class="alert alert-info"><strong>Live payment.</strong> Verify your contact, delivery/pickup choice, exact total, and the linked terms before proceeding. Paystack may charge the amount shown.</div>{% endif %}
+
+  <div class="row g-4">
+    <div class="col-lg-7">
+      <form method="post" action="{% url 'checkout' %}" class="border rounded p-3 p-md-4">
+        {% csrf_token %}
+        {{ form.checkout_token }}
+        {% if form.non_field_errors %}<div class="alert alert-danger" role="alert">{{ form.non_field_errors }}</div>{% endif %}
+        <div class="mb-3"><label class="form-label" for="{{ form.customer_name.id_for_label }}">Name</label>{{ form.customer_name }}{{ form.customer_name.errors }}</div>
+        <div class="mb-3"><label class="form-label" for="{{ form.email.id_for_label }}">Email</label>{{ form.email }}{{ form.email.errors }}{% if checkout_mode == "test" %}<small class="form-text">Use a synthetic test email. Paystack needs an email to initialize checkout.</small>{% endif %}</div>
+        <div class="mb-3"><label class="form-label" for="{{ form.phone.id_for_label }}">Phone</label>{{ form.phone }}{{ form.phone.errors }}</div>
+        <fieldset class="mb-3">
+          <legend class="form-label">Delivery or pickup</legend>
+          {% for radio in form.fulfilment_method %}<div class="form-check">{{ radio.tag }}<label class="form-check-label" for="{{ radio.id_for_label }}">{{ radio.choice_label }}</label></div>{% endfor %}
+          {{ form.fulfilment_method.errors }}
+        </fieldset>
+        <div class="mb-3" id="delivery-fields">
+          <label class="form-label" for="id_delivery_zone">Delivery area</label>
+          <select class="form-select" name="delivery_zone" id="id_delivery_zone">
+            <option value="">Choose an active delivery area</option>
+            {% for zone in delivery_zones %}
+              <option value="{{ zone.pk }}" data-fee="{{ zone.delivery_fee_ngn }}" {% if form.delivery_zone.value|stringformat:"s" == zone.pk|stringformat:"s" %}selected{% endif %}>{{ zone }} — ₦{{ zone.delivery_fee_ngn|floatformat:2 }}{% if zone.is_demo %} (sample fee){% endif %}</option>
+            {% endfor %}
+          </select>
+          {{ form.delivery_zone.errors }}
+          <label class="form-label mt-2" for="{{ form.delivery_address.id_for_label }}">Delivery address</label>
+          {{ form.delivery_address }}{{ form.delivery_address.errors }}
+        </div>
+        <div class="mb-3"><label class="form-label" for="{{ form.special_instructions.id_for_label }}">Order notes (optional)</label>{{ form.special_instructions }}{{ form.special_instructions.errors }}</div>
+        {% if checkout_mode == "demo" or checkout_mode == "test" %}
+          <div class="form-check mb-3">{{ form.demo_data_acknowledgement }}<label class="form-check-label" for="{{ form.demo_data_acknowledgement.id_for_label }}">I understand this is a DEMO/TEST flow and will use synthetic customer data only.</label>{{ form.demo_data_acknowledgement.errors }}</div>
+        {% else %}
+          <div class="form-check mb-3">{{ form.terms_accepted }}<label class="form-check-label" for="{{ form.terms_accepted.id_for_label }}">I agree to the <a href="{{ profile.terms_url }}" target="_blank" rel="noopener">terms</a> and have read the <a href="{{ profile.privacy_notice_url }}" target="_blank" rel="noopener">privacy notice</a>.</label>{{ form.terms_accepted.errors }}</div>
+        {% endif %}
+        {% if checkout_mode == "demo" %}<button class="btn btn-success" type="submit">Place demo order — no payment · ₦<span data-total-button>{{ subtotal|floatformat:2 }}</span></button>
+        {% elif checkout_mode == "test" %}<button class="btn btn-success" type="submit">Continue to Paystack TEST checkout · ₦<span data-total-button>{{ subtotal|floatformat:2 }}</span></button>
+        {% else %}<button class="btn btn-success" type="submit">Pay ₦<span data-total-button>{{ subtotal|floatformat:2 }}</span></button>{% endif %}
+      </form>
+    </div>
+    <aside class="col-lg-5" aria-labelledby="summary-title">
+      <div class="border rounded p-3 p-md-4">
+        <h2 id="summary-title">Order summary</h2>
+        <ul class="list-unstyled">
+          {% for line in lines %}<li class="d-flex justify-content-between gap-3 py-2 border-bottom"><span>{{ line.item.name }} × {{ line.quantity }}{% if line.item.is_demo or line.item.category.is_demo %} <small>(DEMO)</small>{% endif %}</span><strong>₦{{ line.line_total|floatformat:2 }}</strong></li>{% endfor %}
+        </ul>
+        <p class="d-flex justify-content-between"><span>Subtotal</span><strong>₦<span id="summary-subtotal" data-subtotal="{{ subtotal }}">{{ subtotal|floatformat:2 }}</span></strong></p>
+        <p class="d-flex justify-content-between"><span>Delivery fee</span><strong>₦<span id="summary-delivery-fee">0.00</span></strong></p>
+        <p class="d-flex justify-content-between fs-5"><span>Total</span><strong>₦<span id="summary-total">{{ subtotal|floatformat:2 }}</span></strong></p>
+        {% if checkout_mode == "test" or checkout_mode == "live" %}<p class="small">Paystack minimum: ₦{{ payment_minimum_ngn|floatformat:2 }}. The server independently recalculates and verifies the final amount before payment.</p>{% endif %}
+        <a href="{% url 'basket' %}">Back to basket</a>
+      </div>
+    </aside>
+  </div>
+</section>
+<script>
+(() => {
+  const radios = document.querySelectorAll('input[name="fulfilment_method"]');
+  const fields = document.getElementById('delivery-fields');
+  const zone = document.getElementById('id_delivery_zone');
+  const subtotalEl = document.getElementById('summary-subtotal');
+  const feeEl = document.getElementById('summary-delivery-fee');
+  const totalEl = document.getElementById('summary-total');
+  const buttonTotal = document.querySelector('[data-total-button]');
+  if (!fields || !zone || !subtotalEl) return;
+  const update = () => {
+    const method = document.querySelector('input[name="fulfilment_method"]:checked')?.value || 'delivery';
+    fields.hidden = method !== 'delivery';
+    const fee = method === 'delivery' ? Number(zone.selectedOptions[0]?.dataset.fee || 0) : 0;
+    const subtotal = Number(subtotalEl.dataset.subtotal || 0);
+    feeEl.textContent = fee.toFixed(2);
+    totalEl.textContent = (subtotal + fee).toFixed(2);
+    if (buttonTotal) buttonTotal.textContent = (subtotal + fee).toFixed(2);
+  };
+  radios.forEach((radio) => radio.addEventListener('change', update));
+  zone.addEventListener('change', update);
+  update();
+})();
+</script>
+{% endblock %}

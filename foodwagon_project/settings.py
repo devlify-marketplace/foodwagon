@@ -32,7 +32,7 @@ database_url = os.environ.get("DATABASE_URL", "")
 if database_url.startswith(("postgres://", "postgresql://")):
     from urllib.parse import urlparse
     db = urlparse(database_url)
-    DATABASES = {"default": {"ENGINE": "django.db.backends.postgresql", "NAME": db.path.lstrip("/"), "USER": db.username or "", "PASSWORD": db.password or "", "HOST": db.hostname or "", "PORT": db.port or 5432, "CONN_MAX_AGE": 60, "OPTIONS": {"sslmode": os.environ.get("DB_SSLMODE", "prefer")}}}
+    DATABASES = {"default": {"ENGINE": "django.db.backends.postgresql", "NAME": db.path.lstrip("/"), "USER": db.username or "", "PASSWORD": db.password or "", "HOST": db.hostname or "", "PORT": db.port or 5432, "CONN_MAX_AGE": 60, "CONN_HEALTH_CHECKS": True, "OPTIONS": {"sslmode": os.environ.get("DB_SSLMODE", "require")}}}
 elif DEBUG:
     DATABASES = {"default": {"ENGINE": "django.db.backends.sqlite3", "NAME": BASE_DIR / "db.sqlite3"}}
 else:
@@ -56,11 +56,22 @@ SECURE_SSL_REDIRECT = not DEBUG and os.environ.get("DJANGO_SECURE_SSL_REDIRECT",
 SESSION_COOKIE_SECURE = not DEBUG
 CSRF_COOKIE_SECURE = not DEBUG
 SECURE_HSTS_SECONDS = int(os.environ.get("DJANGO_HSTS_SECONDS", "0" if DEBUG else "31536000"))
-SECURE_HSTS_INCLUDE_SUBDOMAINS = not DEBUG
-SECURE_HSTS_PRELOAD = not DEBUG
+SECURE_HSTS_INCLUDE_SUBDOMAINS = (
+    not DEBUG and os.environ.get("DJANGO_HSTS_INCLUDE_SUBDOMAINS", "false").lower() == "true"
+)
+SECURE_HSTS_PRELOAD = not DEBUG and os.environ.get("DJANGO_HSTS_PRELOAD", "false").lower() == "true"
+if SECURE_HSTS_PRELOAD and not SECURE_HSTS_INCLUDE_SUBDOMAINS:
+    raise RuntimeError("DJANGO_HSTS_PRELOAD=true also requires DJANGO_HSTS_INCLUDE_SUBDOMAINS=true.")
 # Forwarded HTTPS is trusted only when deployed behind a configured TLS-terminating proxy.
 if os.environ.get("DJANGO_TRUST_X_FORWARDED_PROTO") == "true":
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
-# Both switches are deliberately hard-off in this application; no real fulfilment exists.
+# Live checkout requires all environment, key-prefix, and owner-verified profile gates.
 LIVE_ORDERING_ENABLED = os.environ.get("LIVE_ORDERING_ENABLED", "false").lower() == "true"
 LIVE_PAYMENTS_ENABLED = os.environ.get("LIVE_PAYMENTS_ENABLED", "false").lower() == "true"
+FOODWAGON_LIVE_CHECKOUT_APPROVED = os.environ.get("FOODWAGON_LIVE_CHECKOUT_APPROVED", "false").lower() == "true"
+PAYMENT_MODE = os.environ.get("FOODWAGON_PAYMENT_MODE", "demo" if DEBUG else "disabled").lower()
+if PAYMENT_MODE not in {"demo", "test", "live", "disabled"}:
+    raise RuntimeError("FOODWAGON_PAYMENT_MODE must be demo, test, live, or disabled.")
+PAYSTACK_TEST_SECRET_KEY = os.environ.get("PAYSTACK_TEST_SECRET_KEY", "")
+PAYSTACK_LIVE_SECRET_KEY = os.environ.get("PAYSTACK_LIVE_SECRET_KEY", "")
+PAYSTACK_API_TIMEOUT_SECONDS = max(1, min(int(os.environ.get("PAYSTACK_API_TIMEOUT_SECONDS", "10")), 30))

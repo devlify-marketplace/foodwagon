@@ -52,6 +52,8 @@ main.main { padding-top: 46px; }
 .foodwagon-login:hover { border-color: var(--fw-green); color: var(--fw-green); }
 .foodwagon-cart-link { display: grid; width: 38px; height: 38px; place-items: center; border: 0; border-radius: 50%; color: #17231b; background: transparent; }
 .foodwagon-cart-link:hover { color: var(--fw-green); background: #edf6ef; }
+.foodwagon-cart-link { position: relative; text-decoration: none; }
+.foodwagon-cart-count { position: absolute; top: -2px; right: -3px; display: grid; min-width: 17px; height: 17px; place-items: center; border-radius: 50%; padding: 0 4px; color: #fff; background: var(--fw-green); font-size: .62rem; font-weight: 800; line-height: 1; }
 
 .food-hero {
   position: relative;
@@ -126,7 +128,7 @@ main.main { padding-top: 46px; }
 .food-order-modal .input-group-icon { position: relative; }
 .food-order-modal .input-box-icon { left: 1rem; color: var(--fw-green) !important; }
 .food-order-modal .input-box { height: 48px; border: 1px solid var(--fw-line); border-radius: 12px; padding-left: 2.6rem; background: #fbfcfa; font-size: .91rem; }
-.food-order-submit { min-height: 48px; border: 0; border-radius: 12px; padding: .65rem 1rem; color: #fff; background: var(--fw-green) !important; font-weight: 700; white-space: nowrap; }
+.food-order-submit { display: inline-flex; min-height: 48px; align-items: center; justify-content: center; border: 0; border-radius: 12px; padding: .65rem 1rem; color: #fff; background: var(--fw-green) !important; font-weight: 700; text-decoration: none; white-space: nowrap; }
 .food-order-submit:hover { background: var(--fw-green-deep) !important; }
 
 .food-picks { padding: 2.4rem 1.8rem 2.6rem; border: 1px solid rgba(32,53,39,.08); border-radius: 22px; background: #fff; box-shadow: 0 15px 45px rgba(22,37,29,.06); }

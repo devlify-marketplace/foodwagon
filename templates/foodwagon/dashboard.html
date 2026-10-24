@@ -1,18 +1,44 @@
 {% extends 'foodwagon/base.html' %}
 {% block title %}Staff dashboard | Foodwagon{% endblock %}
 {% block content %}
-<section class="container py-5">
-  <h1>Staff dashboard</h1>
-  <p>Staff access is required. Manage verified profile details, menu categories, prices, availability, delivery zones, hours, and the future ordering configuration in <a href="/admin/">Django admin</a>.</p>
-  <p>Current profile: {{ profile.name|default:"Not configured" }}. {{ categories }} categories and {{ items }} menu items are currently saved.</p>
-  <h2>Historical local demo submissions</h2>
-  <p>These records are not fulfilment requests. No order is sent to a kitchen, payment provider, or delivery service.</p>
-  <table class="table">
-    <thead><tr><th>Reference</th><th>Name</th><th>Total</th><th>Status</th><th>Created</th></tr></thead>
-    <tbody>
-      {% for order in orders %}<tr><td>DEMO-{{ order.pk }}</td><td>{{ order.customer_name }}</td><td>₦{{ order.total_ngn }}</td><td>{{ order.get_status_display }}</td><td>{{ order.created_at }}</td></tr>
-      {% empty %}<tr><td colspan="5">No local demo submissions.</td></tr>{% endfor %}
-    </tbody>
-  </table>
+<section class="container py-5" aria-labelledby="dashboard-title">
+  <p class="food-section-kicker">STAFF ONLY</p>
+  <h1 id="dashboard-title">Foodwagon dashboard</h1>
+  {% if checkout_mode == "demo" %}<div class="alert alert-warning"><strong>DEMO MODE.</strong> Local demo orders are not sent to a kitchen or delivery service.</div>
+  {% elif checkout_mode == "test" %}<div class="alert alert-warning"><strong>PAYSTACK TEST MODE.</strong> Test transactions never count as real payments or fulfilment.</div>
+  {% elif checkout_mode == "disabled" %}<div class="alert alert-secondary">Checkout is disabled until the relevant environment and owner-verified profile settings are complete.</div>{% endif %}
+  <p>Manage menu, prices, delivery zones, verified profile details, payment/readiness gates, and fulfilment status in <a href="/admin/">Django admin</a>.</p>
+  <p>Current profile: <strong>{{ profile.name|default:"Not configured" }}</strong>{% if profile.is_demo %} (DEMO){% endif %}. {{ categories }} categories and {{ items }} menu items are saved.</p>
+  <div class="row g-3 my-3">
+    <div class="col-sm-4"><div class="border rounded p-3"><strong>{{ order_count }}</strong><br>orders total</div></div>
+    <div class="col-sm-4"><div class="border rounded p-3"><strong>{{ awaiting_payment_count }}</strong><br>payment pending</div></div>
+    <div class="col-sm-4"><div class="border rounded p-3"><strong>{{ paid_count }}</strong><br>payment verified</div></div>
+  </div>
+  <h2>Recent orders</h2>
+  <p>Payment status is system-controlled and read-only. Staff may update fulfilment status in the order admin; test and demo orders must never be fulfilled.</p>
+  <div class="table-responsive">
+    <table class="table align-middle">
+      <thead><tr><th>Reference</th><th>Customer</th><th>Mode</th><th>Total</th><th>Payment</th><th>Fulfilment</th><th>Created</th><th></th></tr></thead>
+      <tbody>
+        {% for order in orders %}
+          <tr>
+            <td>{% if order.is_demo %}DEMO-{% else %}FW-{% endif %}{{ order.public_token.hex|slice:":10"|upper }}</td>
+            <td>{{ order.customer_name }}</td>
+            <td>{{ order.get_payment_mode_display }}{% if order.is_demo %} · DEMO{% endif %}</td>
+            <td>₦{{ order.total_ngn|floatformat:2 }}</td>
+            <td>{{ order.get_payment_status_display }}</td>
+            <td>{{ order.get_status_display }}</td>
+            <td>{{ order.created_at|date:"M j, H:i" }}</td>
+            <td><a href="{% url 'admin:foodwagon_site_order_change' order.pk %}">Manage</a></td>
+          </tr>
+        {% empty %}<tr><td colspan="8">No orders have been created.</td></tr>{% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% if legacy_demo_orders %}
+    <h2 class="mt-5">Legacy local demo submissions</h2>
+    <p>Historical records from the earlier demo-only form; they are not real fulfilment requests.</p>
+    <ul>{% for old_order in legacy_demo_orders %}<li>DEMO-{{ old_order.pk }} · {{ old_order.created_at|date:"M j, Y" }} · ₦{{ old_order.total_ngn|floatformat:2 }}</li>{% endfor %}</ul>
+  {% endif %}
 </section>
 {% endblock %}

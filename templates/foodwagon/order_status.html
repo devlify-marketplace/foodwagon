@@ -1,0 +1,51 @@
+{% extends 'foodwagon/base.html' %}
+{% block title %}Order status | Foodwagon{% endblock %}
+{% block content %}
+<section class="container py-5" aria-labelledby="order-status-title">
+  <p class="food-section-kicker">{% if order.is_demo %}DEMO / TEST ORDER{% else %}ORDER STATUS{% endif %}</p>
+  <h1 id="order-status-title">Order {{ order.public_token.hex|slice:":10"|upper }}</h1>
+  {% if order.payment_mode == "demo" %}
+    <div class="alert alert-warning"><strong>DEMO ORDER SAVED LOCALLY.</strong> No payment, email, kitchen fulfilment, or delivery was sent. This is only a checkout rehearsal.</div>
+  {% elif order.payment_mode == "test" %}
+    {% if order.payment_status == "paid" %}<div class="alert alert-warning"><strong>PAYSTACK TEST PAYMENT CONFIRMED.</strong> No real funds were collected and this test order will not be fulfilled.</div>
+    {% elif order.payment_status == "review" %}<div class="alert alert-danger"><strong>PAYMENT NEEDS REVIEW.</strong> Do not try another payment. Contact staff with this order reference.</div>
+    {% elif order.payment_status == "failed" %}<div class="alert alert-warning"><strong>TEST PAYMENT NOT COMPLETED.</strong> No fulfilment has started; you may retry if the test configuration is still available.</div>
+    {% else %}<div class="alert alert-info"><strong>PAYSTACK TEST PAYMENT PENDING.</strong> No order is confirmed for fulfilment. Wait for verified status before retrying.</div>{% endif %}
+  {% else %}
+    {% if order.payment_status == "paid" and order.status == "received" %}<div class="alert alert-success"><strong>PAYMENT VERIFIED.</strong> Your order has been received.</div>
+    {% elif order.payment_status == "review" or order.status == "payment_review" %}<div class="alert alert-danger"><strong>PAYMENT NEEDS REVIEW.</strong> Do not submit another payment. Contact Foodwagon using the confirmed support details.</div>
+    {% elif order.payment_status == "failed" %}<div class="alert alert-warning"><strong>PAYMENT NOT COMPLETED.</strong> Your order is not confirmed.</div>
+    {% else %}<div class="alert alert-info"><strong>PAYMENT PENDING.</strong> Your order is not confirmed until server verification succeeds.</div>{% endif %}
+  {% endif %}
+
+  <div class="row g-4">
+    <div class="col-lg-7">
+      <div class="border rounded p-3 p-md-4">
+        <h2>Current status</h2>
+        <dl class="row">
+          <dt class="col-sm-5">Order</dt><dd class="col-sm-7">{{ order.get_status_display }}</dd>
+          <dt class="col-sm-5">Payment</dt><dd class="col-sm-7">{{ order.get_payment_status_display }}</dd>
+          <dt class="col-sm-5">Fulfilment</dt><dd class="col-sm-7">{{ order.get_fulfilment_method_display }}</dd>
+          <dt class="col-sm-5">Placed</dt><dd class="col-sm-7">{{ order.created_at|date:"M j, Y H:i" }}</dd>
+          {% if order.fulfilment_method == "delivery" %}<dt class="col-sm-5">Delivery area</dt><dd class="col-sm-7">{{ order.delivery_zone_name }}</dd>{% endif %}
+        </dl>
+        <p class="small">This private status link is the order lookup credential. Keep it private. Customer contact details are not shown on this page.</p>
+        {% if active_payment_url %}<p><a class="btn btn-outline-success" href="{{ active_payment_url }}" rel="noopener">Continue to the pending Paystack checkout</a></p>{% endif %}
+        {% if can_retry %}<form method="post" action="{% url 'retry_payment' order.public_token %}">{% csrf_token %}<button class="btn btn-success" type="submit">Retry Paystack {{ order.payment_mode|upper }} checkout</button></form>{% endif %}
+      </div>
+    </div>
+    <aside class="col-lg-5">
+      <div class="border rounded p-3 p-md-4">
+        <h2>Items and total</h2>
+        <ul class="list-unstyled">
+          {% for line in order.lines.all %}<li class="d-flex justify-content-between gap-3 py-2 border-bottom"><span>{{ line.item_name }} × {{ line.quantity }}{% if line.is_demo %} <small>(DEMO)</small>{% endif %}</span><strong>₦{{ line.line_total_ngn|floatformat:2 }}</strong></li>{% endfor %}
+        </ul>
+        <p class="d-flex justify-content-between"><span>Subtotal</span><strong>₦{{ order.subtotal_ngn|floatformat:2 }}</strong></p>
+        <p class="d-flex justify-content-between"><span>Delivery fee</span><strong>₦{{ order.delivery_fee_ngn|floatformat:2 }}</strong></p>
+        <p class="d-flex justify-content-between fs-5"><span>Total</span><strong>₦{{ order.total_ngn|floatformat:2 }} {{ order.currency }}</strong></p>
+      </div>
+    </aside>
+  </div>
+  <p class="mt-4"><a href="{% url 'home' %}">Return to Foodwagon</a></p>
+</section>
+{% endblock %}

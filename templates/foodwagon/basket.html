@@ -1,0 +1,48 @@
+{% extends 'foodwagon/base.html' %}
+{% block title %}Your basket | Foodwagon{% endblock %}
+{% block content %}
+<section class="container py-5" aria-labelledby="basket-title">
+  <p class="food-section-kicker">{% if checkout_mode == "demo" %}DEMO BASKET{% elif checkout_mode == "test" %}TEST BASKET{% else %}YOUR BASKET{% endif %}</p>
+  <h1 id="basket-title">Your basket</h1>
+  {% if checkout_mode == "demo" %}<div class="alert alert-warning"><strong>DEMO ONLY.</strong> Sample items and prices are fictional. Use synthetic contact details at checkout; no payment, kitchen fulfilment, or delivery occurs.</div>
+  {% elif checkout_mode == "test" %}<div class="alert alert-warning"><strong>PAYSTACK TEST MODE.</strong> Only the test environment is used. Use synthetic customer details; no real funds or fulfilment.</div>{% endif %}
+  {% if lines %}
+    <div class="table-responsive">
+      <table class="table align-middle">
+        <thead><tr><th scope="col">Item</th><th scope="col">Unit price</th><th scope="col">Quantity</th><th scope="col">Line total</th><th scope="col"><span class="visually-hidden">Remove</span></th></tr></thead>
+        <tbody>
+        {% for line in lines %}
+          <tr>
+            <th scope="row">{{ line.item.name }}{% if line.item.is_demo or line.item.category.is_demo %} <small class="badge bg-secondary">DEMO</small>{% endif %}</th>
+            <td>₦{{ line.item.price_ngn|floatformat:2 }}</td>
+            <td>
+              <form method="post" action="{% url 'update_basket' %}" class="d-flex gap-2 align-items-center">
+                {% csrf_token %}
+                <label class="visually-hidden" for="quantity-{{ line.item.pk }}">Quantity for {{ line.item.name }}</label>
+                <input class="form-control" id="quantity-{{ line.item.pk }}" name="quantity_{{ line.item.pk }}" type="number" min="0" max="20" value="{{ line.quantity }}" inputmode="numeric" style="max-width:5rem">
+                <button class="btn btn-outline-secondary btn-sm" type="submit">Update</button>
+              </form>
+            </td>
+            <td>₦{{ line.line_total|floatformat:2 }}</td>
+            <td>
+              <form method="post" action="{% url 'remove_from_basket' line.item.pk %}">
+                {% csrf_token %}<button class="btn btn-link text-danger p-0" type="submit">Remove</button>
+              </form>
+            </td>
+          </tr>
+        {% endfor %}
+        </tbody>
+        <tfoot><tr><th colspan="3" class="text-end">Subtotal</th><td colspan="2"><strong>₦{{ subtotal|floatformat:2 }}</strong></td></tr></tfoot>
+      </table>
+    </div>
+    <p class="small">The server recalculates all prices and delivery fees at checkout. No price or quantity submitted by the browser is trusted.</p>
+    <a class="btn btn-success" href="{% url 'checkout' %}">Continue to checkout</a>
+  {% else %}
+    <div class="border rounded p-4">
+      <h2>Your basket is empty</h2>
+      <p>Add an available menu item to continue. Items marked DEMO are illustrative samples, not a real offer for sale.</p>
+      <a class="btn btn-outline-success" href="{% url 'home' %}#menu">Browse menu</a>
+    </div>
+  {% endif %}
+</section>
+{% endblock %}

@@ -1,10 +1,10 @@
 # Foodwagon
 
-This repository contains the existing Gulp-based design theme (`public/` and `src/`) and a Django server-rendered storefront/admin project. The Django work provides an owner-editable profile, menu catalogue, service configuration models, staff administration, SEO endpoints, and a redesigned green-and-white interface.
+Foodwagon combines its existing Gulp/Pug theme (`public/` and `src/`) with a Django server-rendered storefront and staff tools. The Django app provides an owner-editable profile, menu, delivery-zone settings, session basket, validated checkout, token-protected order status, Paystack integration, staff dashboard, SEO endpoints, and a green-and-white responsive interface.
 
 ## Local Django setup
 
-Python 3.10+ is recommended. From the repository root:
+Python 3.10+ is recommended. The project targets the [Django 5.2 LTS series](https://docs.djangoproject.com/en/5.2/releases/5.2/). From the repository root:
 
 ```sh
 python3 -m venv .venv
@@ -18,28 +18,35 @@ python manage.py createsuperuser
 python manage.py runserver
 ```
 
-The public homepage is `http://127.0.0.1:8000/`; staff administration is `/admin/`, and the staff dashboard is `/dashboard/`. In local development, static files are served from the existing `public/assets/` tree. The Gulp theme workflow remains `npm install && npx gulp` (or `npm run build` where defined).
+The public homepage is `http://127.0.0.1:8000/`; Django admin is `/admin/`, and the staff dashboard is `/dashboard/`. The local seed command is explicitly demo-only and idempotent. The Gulp theme workflow remains `npm install && npx gulp` (or `npm run build` where defined).
 
-## Current operating boundary
+## Order and payment modes
 
-The setup command creates only an editable Foodwagon profile with the confirmed public project contact details: `sadiq@devlify.com.ng` and `+2349034303594`. It intentionally does **not** seed menu items, prices, address, service areas, delivery fees, pickup location, or opening hours. Populate those fields only with owner-verified information in Django admin. Synthetic sample content, if created for private testing, must remain clearly marked `is_demo` and must not be represented as a live offering.
+`FOODWAGON_PAYMENT_MODE` defaults to `demo` when Django debug mode is on and `disabled` otherwise. Demo mode creates no Paystack call, real charge, notification, kitchen fulfilment, or delivery request. Seeded menu items and delivery areas are fictional, editable, and marked `DEMO`; use synthetic customer details only.
 
-Online cart submission, ordering, payment, email fulfilment, and delivery are not implemented. The public order endpoints return HTTP 503 and do not accept/store customer data. The profile's live-order and live-payment flags default off; changing a flag does not implement the missing integration. Do not enable live service until business terms, a payment provider, fulfilment flows, security controls, and end-to-end tests have been added and reviewed.
+Paystack test checkout is available only when a server-side `PAYSTACK_TEST_SECRET_KEY` is configured in test mode. Use it only on an HTTPS staging environment and only with Paystack's official test details. Test payments do not count as real payments and the application never releases test/demo orders for fulfilment.
+
+Production remains fail-closed until the owner supplies verified business identity, real menu/prices, service and delivery/pickup details, opening hours, privacy/terms, a data-handling/retention process, support/fulfilment operations, and Paystack account credentials/configuration. Live payment/order switches default off. No Paystack secret, actual credential, real payment, or deployment is included in this repository update. See [PAYSTACK_INTEGRATION.md](PAYSTACK_INTEGRATION.md) for the current implementation contracts and owner checklist.
 
 ## Production configuration
 
-Set a high-entropy `DJANGO_SECRET_KEY`, explicit `DJANGO_ALLOWED_HOSTS`, and `DJANGO_CSRF_TRUSTED_ORIGINS` as appropriate. `DJANGO_DEBUG` defaults to false. HTTPS redirect, secure session/CSRF cookies, HSTS, and content-type/clickjacking protections are enabled for non-debug operation. Configure `DJANGO_TRUST_X_FORWARDED_PROTO=true` only behind a trusted TLS-terminating proxy that overwrites the forwarded-proto header. Set `DATABASE_URL=postgresql://USER:PASSWORD@HOST:5432/DBNAME` for PostgreSQL; the local default is SQLite. Keep credentials in environment/secret storage, never in source control.
+Set a high-entropy `DJANGO_SECRET_KEY`, explicit `DJANGO_ALLOWED_HOSTS`, and appropriate `DJANGO_CSRF_TRUSTED_ORIGINS`. `DJANGO_DEBUG` defaults to false. HTTPS redirect, secure session/CSRF cookies, HSTS for the current host, and content-type/clickjacking protections are enabled for non-debug operation; HSTS coverage for subdomains (`DJANGO_HSTS_INCLUDE_SUBDOMAINS=true`) and browser preload (`DJANGO_HSTS_PRELOAD=true`, which also requires subdomains) are opt-in and should only be enabled after the owner reviews the chosen domain and other services beneath it. Configure `DJANGO_TRUST_X_FORWARDED_PROTO=true` only behind a trusted TLS-terminating proxy that overwrites the forwarded-proto header. Set `DATABASE_URL=postgresql://USER:PASSWORD@HOST:5432/DBNAME` and `DB_SSLMODE=require` for PostgreSQL (use `verify-full` plus the provider's CA configuration where available); SQLite is for local development. Keep credentials in environment/secret storage, never in source control.
 
-Before any real launch, configure and verify the actual public business identity, menu, pricing/tax, pickup and delivery rules, hours, privacy/legal copy, customer support, payment and fulfilment integrations, production database/backups, monitoring, and operational procedures. No deployment is performed by this project setup.
+Until the production domain is confirmed, Django's `check --deploy` will report `security.W005` and `security.W021` because HSTS is not extended to subdomains or browser preload. This is intentional; both flags should be enabled only after reviewing the domain's subdomain exposure. The rest of the deployment check passes with disposable production settings.
+
+Private basket, checkout, dashboard, and order-status URLs are `noindex`; the sitemap remains empty and robots disallow crawling until owner-verified live settings are active. Public order mutations are POST/CSRF protected. Order totals are recalculated on the server, item prices and payment records are stored as snapshots, callbacks are verified server-to-server, and webhook payloads are signature-checked and deduplicated.
 
 ## SEO and administration
 
-Public metadata, canonical/Open Graph tags, a `WebSite` JSON-LD record, `robots.txt`, and `sitemap.xml` are included. The protected Django admin manages restaurant profile, menu categories/items, operating hours, delivery-zone configuration, and historical demo records. Staff-only dashboard and admin routes require authentication.
+Public metadata, canonical/Open Graph tags, a `WebSite` JSON-LD record, `robots.txt`, and `sitemap.xml` are included. SEO indexing stays blocked while the site is demo/test/disabled. Django admin manages the restaurant profile, menu categories/items, operating hours, delivery zones, orders, immutable payment attempts, and webhook audit records. Only a Django superuser can change the live-readiness switches; payment status/amounts are read-only, and demo/test or unpaid orders cannot be marked fulfilled. Staff dashboard and admin routes require authentication.
 
 ## Tests
 
 ```sh
 python manage.py check
+python manage.py makemigrations --check --dry-run
 python manage.py test
 python manage.py check --deploy
 ```
+
+The tests mock Paystack requests and signed webhook events. They do not call Paystack or create a real charge. `check --deploy` also expects a production-like environment with real deployment configuration; do not silence missing required settings by adding credentials to the repository.

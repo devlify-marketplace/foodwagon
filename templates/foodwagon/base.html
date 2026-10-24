@@ -6,13 +6,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block title %}Foodwagon{% endblock %}</title>
   <meta name="description" content="Foodwagon project information. Menu and service details are being configured; online ordering and payment are not available yet.">
-  <meta name="robots" content="{% if profile and not profile.is_demo %}index,follow{% else %}noindex,nofollow{% endif %}">
-  <link rel="canonical" href="{{ canonical|default:request.build_absolute_uri }}">
+  <meta name="robots" content="{% if checkout_mode == 'live' and profile and not profile.is_demo and not page_noindex %}index,follow{% else %}noindex,nofollow{% endif %}">
+  {% if canonical %}<link rel="canonical" href="{{ canonical }}">{% endif %}
   <link rel="icon" type="image/svg+xml" href="{% static 'img/refresh/foodwagon-favicon.svg' %}">
   <meta property="og:type" content="website">
   <meta property="og:title" content="Foodwagon">
   <meta property="og:description" content="Foodwagon menu and service details are being configured. Online ordering is not available yet.">
-  <meta property="og:url" content="{{ canonical|default:request.build_absolute_uri }}">
+  {% if canonical %}<meta property="og:url" content="{{ canonical }}">{% endif %}
   <meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{% static 'img/refresh/salad-bowl.webp' %}">
   <meta name="theme-color" content="#fffdf7">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -20,7 +20,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=Source+Sans+Pro:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{% static 'css/theme.css' %}">
   <link rel="stylesheet" href="{% static 'css/foodwagon-refresh.css' %}">
-  <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"Foodwagon","url":"{{ request.build_absolute_uri|escapejs }}"}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"Foodwagon","url":"{{ request.scheme }}://{{ request.get_host }}/"}</script>
 </head>
 <body>
   <main id="top" class="main">
@@ -47,9 +47,16 @@
                 <input id="foodwagon-menu-search" class="form-control input-box" type="search" name="q" value="{{ query|default:'' }}" placeholder="Search food" aria-label="Search menu items">
               </div>
             </form>
-            <button class="foodwagon-cart-link" type="button" data-open-order aria-label="Open delivery and pickup options; ordering unavailable">
+            {% if cart_enabled %}
+            <a class="foodwagon-cart-link" href="{% url 'basket' %}" aria-label="View basket, {{ cart_count|default:0 }} items">
+              <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M6 8h12l1.2 12H4.8L6 8Z" fill="none" stroke="currentColor" stroke-linejoin="round" stroke-width="1.7"/><path d="M9 9V6a3 3 0 0 1 6 0v3" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="1.7"/></svg>
+              {% if cart_count %}<span class="foodwagon-cart-count">{{ cart_count }}</span>{% endif %}
+            </a>
+            {% else %}
+            <button class="foodwagon-cart-link" type="button" data-open-order aria-label="Ordering is currently unavailable">
               <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M6 8h12l1.2 12H4.8L6 8Z" fill="none" stroke="currentColor" stroke-linejoin="round" stroke-width="1.7"/><path d="M9 9V6a3 3 0 0 1 6 0v3" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="1.7"/></svg>
             </button>
+            {% endif %}
             <button class="foodwagon-signup" type="button" data-open-account="Sign up">Sign up</button>
             <button class="foodwagon-login" type="button" data-open-account="Log in">Log in</button>
           </div>
@@ -60,11 +67,14 @@
     {% block content %}{% endblock %}
     <footer class="container py-5" id="about">
       <strong>Foodwagon</strong>
-      {% if profile.address %}<p>Address: {{ profile.address }}</p>{% endif %}
-      {% if profile.service_area %}<p>Service area: {{ profile.service_area }}</p>{% endif %}
-      {% if profile.opening_schedule %}<p>Hours: {{ profile.opening_schedule }}</p>{% endif %}
+      {% if profile.address %}<p>{% if profile.is_demo %}DEMO {% endif %}Address: {{ profile.address }}</p>{% endif %}
+      {% if profile.service_area %}<p>{% if profile.is_demo %}DEMO {% endif %}Service area: {{ profile.service_area }}</p>{% endif %}
+      {% if profile.opening_schedule %}<p>{% if profile.is_demo %}DEMO {% endif %}Hours: {{ profile.opening_schedule }}</p>{% endif %}
       <p>Project contact: <a href="mailto:sadiq@devlify.com.ng">sadiq@devlify.com.ng</a> · <a href="tel:+2349034303594">+2349034303594</a></p>
-      <p>Online ordering and payment are not available until verified operating and payment details are configured.</p>
+      {% if checkout_mode == "demo" %}<p>DEMO checkout is available for rehearsal only. No real payment, kitchen fulfilment, or delivery occurs.</p>
+      {% elif checkout_mode == "test" %}<p>Paystack TEST checkout only. Use synthetic test details; test mode does not collect real funds or fulfil orders.</p>
+      {% elif checkout_mode == "live" %}<p>Checkout is live. Confirm the final amount and terms before paying.</p>
+      {% else %}<p>Checkout is disabled until required payment and verified business settings are configured.</p>{% endif %}
       <a href="/sitemap.xml">Sitemap</a>
     </footer>
   </main>
@@ -72,20 +82,22 @@
   <dialog class="foodwagon-dialog" id="orderDialog" aria-labelledby="orderDialogTitle" aria-describedby="orderDialogDescription">
     <div class="foodwagon-dialog__inner">
       <button class="foodwagon-dialog__close" type="button" data-close-dialog aria-label="Close order options">×</button>
-      <p class="food-section-kicker">ORDERING PREVIEW</p>
+      <p class="food-section-kicker">{% if checkout_mode == "demo" %}DEMO ORDERING{% elif checkout_mode == "test" %}PAYSTACK TEST ORDERING{% elif checkout_mode == "live" %}START AN ORDER{% else %}ORDERING PREVIEW{% endif %}</p>
       <h2 id="orderDialogTitle">Delivery or pickup?</h2>
-      <p id="orderDialogDescription">Online ordering and payment are not available until Foodwagon's menu, service areas, address, fees, hours, and payment provider are configured.</p>
+      <p id="orderDialogDescription">{% if checkout_mode == "demo" %}This is a clearly labelled local DEMO. Sample data only; use synthetic customer details. No payment or fulfilment happens.{% elif checkout_mode == "test" %}Paystack TEST mode only. Use synthetic details; no real funds or fulfilment occur.{% elif checkout_mode == "live" %}Continue to your basket, review delivery or pickup, and confirm the exact total before paying.{% else %}Checkout is disabled for this environment. Configure required payment and owner-verified business settings before accepting orders.{% endif %}</p>
       <div class="foodwagon-dialog__tabs" role="tablist" aria-label="Choose an order type">
         <button type="button" role="tab" id="deliveryTab" aria-selected="true" aria-controls="deliveryPanel" data-order-tab="delivery">Delivery</button>
         <button type="button" role="tab" id="pickupTab" aria-selected="false" aria-controls="pickupPanel" data-order-tab="pickup">Pickup</button>
       </div>
       <section id="deliveryPanel" role="tabpanel" aria-labelledby="deliveryTab" data-order-panel="delivery">
-        <h3>Delivery</h3><p>Delivery areas, address intake, and fees are not configured. No address is collected here.</p>
+        <h3>Delivery</h3><p>Review available items and delivery options in your basket. Any address is requested only at checkout.</p>
+        {% if checkout_mode != "disabled" %}<a class="food-order-submit" href="{% url 'basket' %}">Review basket ({{ cart_count }})</a>{% else %}<p>No order or address is submitted while checkout is disabled.</p>{% endif %}
       </section>
       <section id="pickupPanel" role="tabpanel" aria-labelledby="pickupTab" data-order-panel="pickup" hidden>
-        <h3>Pickup</h3><p>A pickup location and opening hours are not configured. No personal details are collected here.</p>
+        <h3>Pickup</h3><p>Select pickup at checkout if it is enabled for the current operating mode; no pickup location is promised until configured.</p>
+        {% if checkout_mode != "disabled" %}<a class="food-order-submit" href="{% url 'basket' %}">Review basket ({{ cart_count }})</a>{% else %}<p>No pickup request or personal details are collected while checkout is disabled.</p>{% endif %}
       </section>
-      <p class="foodwagon-dialog__footnote">This preview does not accept orders or payments.</p>
+      <p class="foodwagon-dialog__footnote">{% if checkout_mode == "demo" or checkout_mode == "test" %}Use synthetic data only; this mode does not fulfil orders.{% elif checkout_mode == "disabled" %}No customer information is collected while ordering is disabled.{% else %}Confirm the final amount and the owner-approved terms before paying.{% endif %}</p>
     </div>
   </dialog>
 

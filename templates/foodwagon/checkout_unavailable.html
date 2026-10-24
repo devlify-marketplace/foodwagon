@@ -1,0 +1,21 @@
+{% extends 'foodwagon/base.html' %}
+{% block title %}Checkout unavailable | Foodwagon{% endblock %}
+{% block content %}
+<section class="container py-5" aria-labelledby="checkout-unavailable-title">
+  <div class="alert alert-warning">
+    <p class="food-section-kicker">CHECKOUT DISABLED</p>
+    <h1 id="checkout-unavailable-title">Orders are not being accepted in this environment</h1>
+    <p>No order or payment was created. Live ordering stays off until the payment mode, credentials, verified business settings, and owner approvals are complete.</p>
+  </div>
+  {% if setup_requirements %}
+    <div class="border rounded p-3 p-md-4">
+      <h2>Owner setup checklist</h2>
+      <ul>{% for item in setup_requirements %}<li>{{ item|capfirst }}.</li>{% endfor %}</ul>
+      <p>The checklist does not display credentials. Configure keys only in deployment secret storage and never in source control.</p>
+    </div>
+  {% else %}
+    <p>For local rehearsal, explicitly set <code>FOODWAGON_PAYMENT_MODE=demo</code>. For Paystack integration tests, configure a test key on an HTTPS staging environment. No live payment key is required for this page.</p>
+  {% endif %}
+  <p class="mt-4"><a class="btn btn-outline-success" href="{% url 'home' %}">Back to Foodwagon</a></p>
+</section>
+{% endblock %}
