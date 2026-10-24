@@ -10,9 +10,8 @@
 html { scroll-behavior: smooth; }
 body {
   color: var(--fw-ink);
-  background-color: #d5d6d4;
-  background-image: radial-gradient(rgba(255,255,255,.42) .8px, transparent 1px), radial-gradient(rgba(47,54,49,.07) .7px, transparent 1px);
-  background-size: 4px 4px, 7px 7px;
+  background-color: var(--fw-paper);
+  background-image: none;
   font-family: 'Source Sans Pro', Arial, sans-serif;
 }
 main.main { padding-top: 46px; }
