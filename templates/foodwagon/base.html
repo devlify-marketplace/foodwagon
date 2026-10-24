@@ -8,6 +8,7 @@
   <meta name="description" content="Foodwagon project information. Menu and service details are being configured; online ordering and payment are not available yet.">
   <meta name="robots" content="{% if profile and not profile.is_demo %}index,follow{% else %}noindex,nofollow{% endif %}">
   <link rel="canonical" href="{{ canonical|default:request.build_absolute_uri }}">
+  <link rel="icon" type="image/svg+xml" href="{% static 'img/refresh/foodwagon-favicon.svg' %}">
   <meta property="og:type" content="website">
   <meta property="og:title" content="Foodwagon">
   <meta property="og:description" content="Foodwagon menu and service details are being configured. Online ordering is not available yet.">
