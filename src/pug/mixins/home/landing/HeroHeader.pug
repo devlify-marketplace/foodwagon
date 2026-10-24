@@ -1,45 +1,91 @@
 mixin HeroHeader
-  section.py-5.overflow-hidden.bg-primary#home
-    .container
-      .row.flex-center
-        .col-md-5.col-lg-6.order-0.order-md-1.mt-8.mt-md-0
-          a(href='#!').img-landing-banner
-            img.img-fluid(src=`${CWD}assets/img/gallery/hero-header.png`   alt='hero-header')
-  
-        .col-md-7.col-lg-6.py-8.text-md-start.text-center
-          h1.display-1.fs-md-5.fs-lg-6.fs-xl-8.text-light Are you starving?
-          h1.text-800.mb-5.fs-4 Within a few clicks, find meals that
-            br.d-none.d-xxl-block
-            |are accessible near you
-          .card.w-xxl-75
-            .card-body
-              nav
-                .nav.nav-tabs#nav-tab(role='tablist')
-                  button.nav-link.active.mb-3#nav-home-tab(data-bs-toggle='tab' data-bs-target='#nav-home' type='button' role='tab' aria-controls='nav-home' aria-selected='true')
-                    i.fas.fa-motorcycle.me-2
-                    | Delivery
-                  button.nav-link.mb-3#nav-profile-tab(data-bs-toggle='tab' data-bs-target='#nav-profile' type='button' role='tab' aria-controls='nav-profile' aria-selected='false')
-                    i.fas.fa-shopping-bag.me-2
-                    | Pickup
-              .tab-content.mt-3#nav-tabContent
-                .tab-pane.fade.show.active#nav-home(role='tabpanel' aria-labelledby='nav-home-tab')
-                  form.row.gx-2.gy-2.align-items-center
-                    .col
-                      .input-group-icon
-                        i.fas.fa-map-marker-alt.text-danger.input-box-icon
-                        label.visually-hidden(for='inputDelivery') Address
-                        input.form-control#inputDelivery.input-box.form-foodwagon-control(type='text' placeholder='Enter Your Address')
-                    .d-grid.gap-3.col-sm-auto
-                      button.btn.btn-danger(type='submit') Find Food
-                .tab-pane.fade#nav-profile(role='tabpanel' aria-labelledby='nav-profile-tab') 
-                  form.row.gx-4.gy-2.align-items-center
-                    .col
-                      .input-group-icon
-                        i.fas.fa-map-marker-alt.text-danger.input-box-icon
-                        label.visually-hidden(for='inputPickup') Address
-                        input.form-control#inputPickup.input-box.form-foodwagon-control(type='text' placeholder='Enter Your Address')
-                    .d-grid.gap-3.col-sm-auto
-                      button.btn.btn-danger(type='submit') Find Food
-                          
-
-                            
+  section#home.food-hero(aria-labelledby='foodwagon-hero-title')
+    .food-hero__doodles(aria-hidden='true')
+    .food-hero__layout
+      .food-hero__copy
+        h1#foodwagon-hero-title
+          | Order
+          span.food-hero__script  your
+          br
+          span.food-hero__script favorite
+          span.food-hero__headline-last foods
+        p.food-hero__intro Fresh and tasty meals to suit your mood, from kitchens around you. Good food, delivered with care.
+        .food-hero__actions
+          a.btn.food-hero__menu-btn(href='#carouselPopularItems')
+            i.fas.fa-layer-group(aria-hidden='true')
+            | Menu
+          button.btn.food-hero__order-btn(type='button' data-bs-toggle='modal' data-bs-target='#orderModal')
+            i.fas.fa-shopping-bag(aria-hidden='true')
+            | Order now
+        .food-category-area
+          .food-category-carousel
+            button.food-category-arrow(type='button' data-category-scroll='-1' aria-label='Scroll to previous categories')
+              i.fas.fa-chevron-left(aria-hidden='true')
+            .food-category-track
+              a.food-category-card.food-category-card--burger(href='#carouselPopularItems' aria-label='Explore burger favourites')
+                img(src=`${CWD}assets/img/gallery/burger.png` alt='' loading='lazy')
+                span Burger
+                small
+                  i.fas.fa-star(aria-hidden='true')
+                  |  4.8
+              a.food-category-card.food-category-card--cake(href='#carouselPopularItems' aria-label='Explore cake favourites')
+                img(src=`${CWD}assets/img/gallery/dancake.png` alt='' loading='lazy')
+                span Cake
+                small
+                  i.fas.fa-star(aria-hidden='true')
+                  |  4.8
+              a.food-category-card.food-category-card--pizza(href='#carouselPopularItems' aria-label='Explore pizza favourites')
+                img(src=`${CWD}assets/img/gallery/pizza.png` alt='' loading='lazy')
+                span Pizza
+                small
+                  i.fas.fa-star(aria-hidden='true')
+                  |  4.8
+            button.food-category-arrow(type='button' data-category-scroll='1' aria-label='Scroll to next categories')
+              i.fas.fa-chevron-right(aria-hidden='true')
+      .food-hero__visual
+        img.food-hero__salad(data-hero-image src=`${CWD}assets/img/refresh/salad-bowl.webp` alt='Overhead bowl of fresh garden salad')
+        .food-dish-card(data-dish-card)
+          .food-dish-card__top
+            strong Garden salad
+            span.food-dish-card__rating
+              i.fas.fa-star(aria-hidden='true')
+              |  4.8
+          .food-dish-card__time
+            i.fas.fa-clock(aria-hidden='true')
+            |  8–10 mins
+  #orderModal.modal.fade(tabindex='-1' aria-labelledby='orderModalTitle' aria-hidden='true')
+    .modal-dialog.modal-dialog-centered
+      .modal-content.food-order-modal
+        .modal-header
+          div
+            p.food-section-kicker.mb-1 Start your order
+            h2#orderModalTitle.modal-title Find food near you
+          button.btn-close(type='button' data-bs-dismiss='modal' aria-label='Close')
+        .modal-body
+          nav(aria-label='Choose delivery or pickup')
+            .nav.nav-tabs.food-order-tabs#nav-tab(role='tablist')
+              button.nav-link.active#nav-home-tab(data-bs-toggle='tab' data-bs-target='#nav-home' type='button' role='tab' aria-controls='nav-home' aria-selected='true')
+                i.fas.fa-motorcycle.me-2(aria-hidden='true')
+                | Delivery
+              button.nav-link#nav-profile-tab(data-bs-toggle='tab' data-bs-target='#nav-profile' type='button' role='tab' aria-controls='nav-profile' aria-selected='false')
+                i.fas.fa-shopping-bag.me-2(aria-hidden='true')
+                | Pickup
+          .tab-content.food-order-content#nav-tabContent
+            .tab-pane.fade.show.active#nav-home(role='tabpanel' aria-labelledby='nav-home-tab')
+              form.row.gx-2.gy-2.align-items-center
+                .col
+                  .input-group-icon
+                    i.fas.fa-map-marker-alt.text-primary.input-box-icon(aria-hidden='true')
+                    label.visually-hidden(for='inputDelivery') Delivery address
+                    input#inputDelivery.form-control.input-box.form-foodwagon-control(type='text' placeholder='Enter your delivery address' autocomplete='street-address')
+                .d-grid.col-sm-auto
+                  button.btn.btn-danger.food-order-submit(type='submit') Find food
+            .tab-pane.fade#nav-profile(role='tabpanel' aria-labelledby='nav-profile-tab')
+              form.row.gx-2.gy-2.align-items-center
+                .col
+                  .input-group-icon
+                    i.fas.fa-map-marker-alt.text-primary.input-box-icon(aria-hidden='true')
+                    label.visually-hidden(for='inputPickup') Pickup location
+                    input#inputPickup.form-control.input-box.form-foodwagon-control(type='text' placeholder='Enter a pickup location' autocomplete='street-address')
+                .d-grid.col-sm-auto
+                  button.btn.btn-danger.food-order-submit(type='submit') Find food

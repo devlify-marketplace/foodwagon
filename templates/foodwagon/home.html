@@ -1,0 +1,71 @@
+{% extends 'foodwagon/base.html' %}
+{% load static %}
+{% block title %}Foodwagon | Food and ordering information{% endblock %}
+{% block content %}
+<section class="food-hero" id="home" aria-labelledby="foodwagon-hero-title">
+  <div class="food-hero__layout">
+    <div class="food-hero__copy">
+      <p class="food-section-kicker">FOODWAGON</p>
+      <h1 id="foodwagon-hero-title">Order <span class="food-hero__script">your</span><br><span class="food-hero__script">favorite</span> foods</h1>
+      <p class="food-hero__intro">Discover the Foodwagon experience. Menu, service-area, and pickup details are being configured.</p>
+      <p class="fw-bold">Ordering and payment are not available yet.</p>
+      <div class="food-hero__actions">
+        <a class="btn food-hero__menu-btn" href="#menu">View menu information</a>
+        <a class="btn food-hero__order-btn" href="mailto:{{ public_email }}">Contact Foodwagon</a>
+      </div>
+      <div class="foodwagon-category-row" aria-label="Food preview">
+        <span class="foodwagon-category-chip">Fresh</span>
+        <span class="foodwagon-category-chip">Made to order</span>
+        <span class="foodwagon-category-chip">Coming soon</span>
+      </div>
+    </div>
+    <div class="food-hero__visual" aria-label="Decorative food image">
+      <img class="food-hero__salad" src="{% static 'img/refresh/salad-bowl.webp' %}" alt="Illustrative overhead bowl of salad" fetchpriority="high">
+      <div class="food-hero__dish-card">
+        <span class="food-hero__dish-label">FOODWAGON</span>
+        <span class="food-hero__dish-note">Menu details coming soon</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="container py-5" id="menu" aria-labelledby="menu-title">
+  <p class="food-section-kicker">MENU INFORMATION</p>
+  <h2 id="menu-title">Menu</h2>
+  {% if items %}
+    {% for category in categories %}
+      <section class="mt-4" aria-labelledby="category-{{ category.pk }}">
+        <h3 id="category-{{ category.pk }}">{{ category.name }}{% if category.is_demo %} <small>(DEMO)</small>{% endif %}</h3>
+        <div class="row">
+          {% for item in category.items.all %}
+            {% if item.is_available %}
+            <article class="col-md-4 mb-4">
+              <div class="card h-100">
+                {% if item.image %}<img class="card-img-top" src="{% static item.image %}" alt="{{ item.name }}" loading="lazy">{% endif %}
+                <div class="card-body">
+                  {% if item.is_demo %}<p class="badge bg-secondary">SAMPLE · NOT FOR SALE</p>{% endif %}
+                  <h4>{{ item.name }}</h4>
+                  <p>{{ item.description }}</p>
+                  <p class="fw-bold">₦{{ item.price_ngn|floatformat:2 }}{% if item.is_demo %} <small>illustrative sample price</small>{% endif %}</p>
+                  <p class="small">Online ordering is not available yet.</p>
+                </div>
+              </div>
+            </article>
+            {% endif %}
+          {% endfor %}
+        </div>
+      </section>
+    {% endfor %}
+  {% else %}
+    <div class="border rounded p-4 mt-3">
+      <h3>Menu details have not been configured</h3>
+      <p>No dishes, prices, pickup location, delivery areas, fees, or operating hours are published yet. The owner can add verified details through the staff admin.</p>
+      <p>Ordering and payment are not available.</p>
+    </div>
+  {% endif %}
+  <div class="mt-4">
+    <p>For general enquiries, contact <a href="mailto:{{ public_email }}">{{ public_email }}</a> or <a href="tel:{{ public_phone }}">{{ public_phone }}</a>.</p>
+    <p class="small">These are confirmed project contact details; they do not establish an operating restaurant or delivery service.</p>
+  </div>
+</section>
+{% endblock %}

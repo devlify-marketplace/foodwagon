@@ -5,15 +5,17 @@ include ../mixins/Variables
 prepend scripts
   script(src=`https://polyfill.io/v3/polyfill.min.js?features=window.scroll`)
   script(src=`${CWD}vendors/fontawesome/all.min.js`)
- 
- 
-append footerStyles
-  link(href='https://fonts.googleapis.com/css2?family=Source+Sans+Pro:wght@200;300;400;600;700;900&display=swap' rel='stylesheet')
+  script(src='https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js')
 
-block mainContent 
+append styles
+  link(href=`${CWD}assets/css/foodwagon-refresh.css` rel='stylesheet')
+
+append footerStyles
+  link(href='https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=Source+Sans+Pro:wght@200;300;400;600;700;900&display=swap' rel='stylesheet')
+
+block mainContent
   +NavbarFoodwagon
-  block wrapperContent 
+  block wrapperContent
     block beforeContent
     block content
     block afterContent
-

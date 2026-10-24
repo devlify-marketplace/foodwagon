@@ -21,8 +21,8 @@ append variables
         title:'Enjoy meals',
         text:'Food is made and delivered directly to your home.',
       },
-    
     ]
+
 mixin Feature(config)
   .col-sm-6.col-md-3.mb-6
     .text-center
@@ -32,10 +32,10 @@ mixin Feature(config)
 
 mixin Features
   +Section.py-0.bg-primary-gradient
-    .row.justify-content-center.g-0
+    .row.justify-content-center.g-0#how-it-works
       .col-xl-9
         .col-lg-6.text-center.mx-auto.mb-3.mb-md-5.mt-4
           h5.fw-bold.text-danger.fs-3.fs-lg-5.lh-sm.my-6 How does it work
         .row
-          each feature in features 
-            +Feature(feature)    
+          each feature in features
+            +Feature(feature)

@@ -1,59 +1,51 @@
 append variables
   -
-    var discount= [
+    var foodPicks = [
       {
-        image:'discount-item-1.png',
-        title:'Flat Hill Slingback',
-        discount:'15',
-        percentage:'% off',
-        text:'off',
-        days:'6 days Remaining',
+        image:'refresh/jollof-chicken.webp',
+        alt:'A pan of jollof rice with chicken and fresh vegetables',
+        title:'Jollof & chicken',
+        tag:'A proper favourite',
       },
       {
-        image:'discount-item-2.png',
-        title:'Ocean Blue Ring',
-        discount:'10',
-        percentage:'% off',
-        days:'6 days Remaining',
+        image:'refresh/hero-platter.webp',
+        alt:'A Nigerian sharing platter with rice, suya, plantain and sides',
+        title:'Jollof & suya',
+        tag:'Made to share',
       },
       {
-        image:'discount-item-3.png',
-        title:'Brown Leathered Wallet',
-        discount:'25',
-        percentage:'% off',
-        days:'6 days Remaining',
+        image:'refresh/table-spread.webp',
+        alt:'A colourful spread of rice, stew, snacks and fresh sides',
+        title:'Something for everyone',
+        tag:'Gather around',
       },
       {
-        image:'discount-item-4.png',
-        title:'Silverside Wristwatch',
-        discount:'20',
-        percentage:'% off',
-        days:'6 days Remaining',
+        image:'refresh/family-platter.webp',
+        alt:'A generous meal plate with rice, grilled chicken and salad',
+        title:'The full spread',
+        tag:'Big flavour energy',
       },
-
     ];
 
+mixin FoodPick(config)
+  .col-sm-6.col-lg-3.mb-4(data-reveal)
+    a.food-pick-card(href='#carouselPopularItems' aria-label=`Explore ${config.title} in popular items`)
+      .food-pick-card__photo
+        img(src=`${CWD}assets/img/${config.image}` alt=config.alt loading='lazy')
+      .food-pick-card__body
+        span.food-pick-card__tag=config.tag
+        h3=config.title
+        span.food-pick-card__link
+          | Explore menu
+          i.fas.fa-arrow-right(aria-hidden='true')
 
-mixin Discounts(config)
-  .col-sm-6.col-lg-3.mb-3.mb-md-0.h-100.pb-4
-    .card.card-span.h-100
-      .position-relative    
-        img.img-fluid.rounded-3.w-100(src=`${CWD}assets/img/gallery/${config.image}` alt='...')
-        .card-actions
-          .badge.badge-foodwagon.bg-primary.p-4
-            .d-flex.flex-between-center
-              .text-white.fs-7!=config.discount
-              .d-block.text-white.fs-2 %  
-                br
-                .fw-normal.fs-1.mt-2 Off
-      .card-body.px-0
-        h5.fw-bold.text-1000.text-truncate=config.title 
-        span.badge.bg-soft-danger.py-2.px-3
-          span.fs-1.text-danger=config.days 
-      a.stretched-link(href='#')
-    
 mixin Discount
-  +Section.py-0
-    .row.h-100.gx-2.mt-7
-      each item in discount
-        +Discounts(item)
+  +Section.py-5
+    .food-picks
+      .food-picks__heading(data-reveal)
+        p.food-section-kicker Good things to start with
+        h2 Pick a craving
+        p A few delicious directions to take your next order.
+      .row.g-3.g-xl-4
+        each item in foodPicks
+          +FoodPick(item)

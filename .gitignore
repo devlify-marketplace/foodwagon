@@ -41,3 +41,11 @@ Thumbs.db
 # ZiON ignored files #
 node_modules
 temp
+
+# Django local artifacts and secrets
+.venv/
+__pycache__/
+*.py[cod]
+.env
+staticfiles/
+db.sqlite3
