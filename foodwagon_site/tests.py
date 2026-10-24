@@ -32,7 +32,40 @@ class FoodwagonTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Menu details have not been configured")
         self.assertContains(response, "Ordering and payment are not available")
+        self.assertContains(response, "Order now")
+        self.assertContains(response, "Sign up")
+        self.assertContains(response, "Log in")
+        self.assertContains(response, "food-category-card--burger")
+        self.assertContains(response, "food-hero__doodles")
+        self.assertContains(response, "Delivery")
+        self.assertContains(response, "Pickup")
+        self.assertContains(response, "not on menu")
+        self.assertNotContains(response, ">4.8<")
+        self.assertNotContains(response, "8–10 mins")
         self.assertNotContains(response, "₦4,200")
+
+    def test_menu_search_filters_catalog_and_marks_demo_entries(self):
+        burger_category = Category.objects.create(name="Burger", slug="burger")
+        cake_category = Category.objects.create(name="Cake", slug="cake")
+        MenuItem.objects.create(
+            category=burger_category,
+            name="Example Burger",
+            description="Illustrative sample item",
+            price_ngn="2000.00",
+        )
+        MenuItem.objects.create(
+            category=cake_category,
+            name="Example Cake",
+            description="Another sample item",
+            price_ngn="2500.00",
+        )
+
+        response = self.client.get(reverse("home"), {"q": "burger"})
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Example Burger")
+        self.assertContains(response, "SAMPLE · NOT FOR SALE")
+        self.assertNotContains(response, "Example Cake")
 
     def test_public_order_actions_fail_closed_without_saving_personal_data(self):
         category = Category.objects.create(name="Verified", slug="verified", is_demo=False)

@@ -1,4 +1,5 @@
 from django.contrib.admin.views.decorators import staff_member_required
+from django.db.models import Prefetch, Q
 from django.http import HttpResponse
 from django.shortcuts import render
 from django.urls import reverse
@@ -15,17 +16,28 @@ def profile():
 
 
 def home(request):
-    categories = Category.objects.filter(is_active=True).prefetch_related("items")
+    query = request.GET.get("q", "").strip()[:80]
     menu_items = MenuItem.objects.filter(
         is_available=True,
         category__is_active=True,
     ).select_related("category")
+    if query:
+        menu_items = menu_items.filter(
+            Q(name__icontains=query)
+            | Q(description__icontains=query)
+            | Q(category__name__icontains=query)
+        )
+    categories = Category.objects.filter(is_active=True)
+    if query:
+        categories = categories.filter(items__in=menu_items).distinct()
+    categories = categories.prefetch_related(Prefetch("items", queryset=menu_items))
     return render(
         request,
         "foodwagon/home.html",
         {
             "categories": categories,
             "items": menu_items,
+            "query": query,
             "profile": profile(),
             "canonical": request.build_absolute_uri(reverse("home")),
             "public_email": PUBLIC_EMAIL,

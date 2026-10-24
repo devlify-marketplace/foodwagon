@@ -5,6 +5,7 @@ import { addClass } from './utils';
 
 const detectorInit = () => {
   const { is } = window;
+  if (!is) return;
   const html = document.querySelector('html');
   is.opera() && addClass(html, 'opera');
   is.mobile() && addClass(html, 'mobile');

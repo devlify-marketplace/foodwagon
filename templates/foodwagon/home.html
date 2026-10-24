@@ -3,35 +3,64 @@
 {% block title %}Foodwagon | Food and ordering information{% endblock %}
 {% block content %}
 <section class="food-hero" id="home" aria-labelledby="foodwagon-hero-title">
+  <div class="food-hero__doodles" aria-hidden="true"></div>
   <div class="food-hero__layout">
     <div class="food-hero__copy">
-      <p class="food-section-kicker">FOODWAGON</p>
-      <h1 id="foodwagon-hero-title">Order <span class="food-hero__script">your</span><br><span class="food-hero__script">favorite</span> foods</h1>
-      <p class="food-hero__intro">Discover the Foodwagon experience. Menu, service-area, and pickup details are being configured.</p>
-      <p class="fw-bold">Ordering and payment are not available yet.</p>
+      <p class="food-hero__eyebrow"><span class="food-hero__eyebrow-mark" aria-hidden="true">✦</span> FOODWAGON</p>
+      <p class="food-hero__setup" role="status"><strong>PREVIEW</strong><span>Ordering and payment are not available yet.</span></p>
+      <h1 id="foodwagon-hero-title">Order <span class="food-hero__script">your</span><br><span class="food-hero__script">favorite</span><span class="food-hero__headline-last"> foods</span></h1>
+      <p class="food-hero__intro">Menu, delivery, pickup, and service details are being configured. Contact Foodwagon for confirmed information.</p>
       <div class="food-hero__actions">
-        <a class="btn food-hero__menu-btn" href="#menu">View menu information</a>
-        <a class="btn food-hero__order-btn" href="mailto:{{ public_email }}">Contact Foodwagon</a>
+        <a class="btn food-hero__menu-btn" href="#menu">
+          <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="m4 7 8-4 8 4-8 4-8-4Zm0 5 8 4 8-4M4 17l8 4 8-4" fill="none" stroke="currentColor" stroke-linejoin="round" stroke-width="1.7"/></svg>
+          Menu
+        </a>
+        <button class="btn food-hero__order-btn" type="button" data-open-order>
+          <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M6 8h12l1.2 12H4.8L6 8Z" fill="none" stroke="currentColor" stroke-linejoin="round" stroke-width="1.7"/><path d="M9 9V6a3 3 0 0 1 6 0v3" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="1.7"/></svg>
+          Order now
+        </button>
       </div>
-      <div class="foodwagon-category-row" aria-label="Food preview">
-        <span class="foodwagon-category-chip">Fresh</span>
-        <span class="foodwagon-category-chip">Made to order</span>
-        <span class="foodwagon-category-chip">Coming soon</span>
+      <div class="food-category-area" aria-label="Illustrative food categories; these are not published menu items">
+        <div class="food-category-carousel">
+          <button class="food-category-arrow" type="button" data-category-scroll="-1" aria-label="Scroll to previous example categories">
+            <svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true"><path d="m15 18-6-6 6-6" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/></svg>
+          </button>
+          <div class="food-category-track" aria-label="Example categories">
+            <a class="food-category-card food-category-card--burger" href="#menu" aria-label="Burger, illustrative example category">
+              <img src="{% static 'img/gallery/burger.png' %}" alt="" loading="lazy"><span>Burger</span><small>DEMO</small>
+            </a>
+            <a class="food-category-card food-category-card--cake" href="#menu" aria-label="Cake, illustrative example category">
+              <img src="{% static 'img/gallery/dancake.png' %}" alt="" loading="lazy"><span>Cake</span><small>DEMO</small>
+            </a>
+            <a class="food-category-card food-category-card--pizza" href="#menu" aria-label="Pizza, illustrative example category">
+              <img src="{% static 'img/gallery/pizza.png' %}" alt="" loading="lazy"><span>Pizza</span><small>DEMO</small>
+            </a>
+          </div>
+          <button class="food-category-arrow" type="button" data-category-scroll="1" aria-label="Scroll to next example categories">
+            <svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true"><path d="m9 18 6-6-6-6" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/></svg>
+          </button>
+        </div>
       </div>
     </div>
-    <div class="food-hero__visual" aria-label="Decorative food image">
-      <img class="food-hero__salad" data-hero-image src="{% static 'img/refresh/salad-bowl.webp' %}" alt="Illustrative overhead bowl of salad" fetchpriority="high">
-      <div class="food-hero__dish-card">
-        <span class="food-hero__dish-label">FOODWAGON</span>
-        <span class="food-hero__dish-note">Menu details coming soon</span>
+    <div class="food-hero__visual" aria-label="Illustrative food image">
+      <img class="food-hero__salad" data-hero-image src="{% static 'img/refresh/salad-bowl.webp' %}" alt="Illustrative overhead bowl of salad, not a current menu item" fetchpriority="high">
+      <div class="food-dish-card" data-dish-card>
+        <div class="food-dish-card__top">
+          <strong>Salad image</strong>
+          <span class="food-dish-card__rating">DEMO</span>
+        </div>
+        <div class="food-dish-card__time">Illustration · not on menu</div>
       </div>
     </div>
   </div>
 </section>
 
 <section class="container py-5" id="menu" aria-labelledby="menu-title">
-  <p class="food-section-kicker">MENU INFORMATION</p>
-  <h2 id="menu-title">Menu</h2>
+  <div class="food-picks__heading">
+    <p class="food-section-kicker">MENU INFORMATION</p>
+    <h2 id="menu-title">Menu</h2>
+    {% if query %}<p>Search results for “{{ query }}”</p>{% else %}<p>Only owner-configured menu items can appear here.</p>{% endif %}
+  </div>
   {% if items %}
     {% for category in categories %}
       <section class="mt-4" aria-labelledby="category-{{ category.pk }}">
@@ -41,7 +70,7 @@
             {% if item.is_available %}
             <article class="col-md-4 mb-4">
               <div class="card h-100">
-                {% if item.image %}<img class="card-img-top" src="{% static item.image %}" alt="{{ item.name }}" loading="lazy">{% endif %}
+                {% if item.image %}<img class="card-img-top" src="{% static item.image %}" alt="{{ item.name }}{% if item.is_demo %} demo image{% endif %}" loading="lazy">{% endif %}
                 <div class="card-body">
                   {% if item.is_demo %}<p class="badge bg-secondary">SAMPLE · NOT FOR SALE</p>{% endif %}
                   <h4>{{ item.name }}</h4>
@@ -56,6 +85,11 @@
         </div>
       </section>
     {% endfor %}
+  {% elif query %}
+    <div class="border rounded p-4 mt-3" role="status">
+      <h3>No menu match is available</h3>
+      <p>No owner-configured menu items are available to search yet. Search does not collect personal information.</p>
+    </div>
   {% else %}
     <div class="border rounded p-4 mt-3">
       <h3>Menu details have not been configured</h3>
@@ -67,5 +101,11 @@
     <p>For general enquiries, contact <a href="mailto:{{ public_email }}">{{ public_email }}</a> or <a href="tel:{{ public_phone }}">{{ public_phone }}</a>.</p>
     <p class="small">These are confirmed project contact details; they do not establish an operating restaurant or delivery service.</p>
   </div>
+</section>
+
+<section class="container pb-5 foodwagon-service-note" id="services" aria-labelledby="services-title">
+  <p class="food-section-kicker">SERVICE INFORMATION</p>
+  <h2 id="services-title">Delivery and pickup details</h2>
+  <p>Service areas, a pickup location, fees, hours, and payment setup have not been confirmed. The delivery and pickup controls are shown for preview only; they do not accept addresses or create orders.</p>
 </section>
 {% endblock %}

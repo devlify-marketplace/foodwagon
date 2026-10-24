@@ -15,25 +15,47 @@
   <meta property="og:url" content="{{ canonical|default:request.build_absolute_uri }}">
   <meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{% static 'img/refresh/salad-bowl.webp' %}">
   <meta name="theme-color" content="#fffdf7">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=Source+Sans+Pro:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{% static 'css/theme.css' %}">
   <link rel="stylesheet" href="{% static 'css/foodwagon-refresh.css' %}">
   <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"Foodwagon","url":"{{ request.build_absolute_uri|escapejs }}"}</script>
 </head>
 <body>
-  <main id="top">
-    <header class="navbar navbar-expand-lg navbar-light bg-light">
+  <main id="top" class="main">
+    <header class="navbar navbar-expand-lg navbar-light bg-light" data-navbar-on-scroll>
       <div class="container">
-        <a class="navbar-brand" href="/" aria-label="Foodwagon home">Foodwagon</a>
-        <nav aria-label="Main navigation">
-          <a class="nav-link d-inline" href="#menu">Menu</a>
-          <a class="nav-link d-inline" href="#about">About</a>
-          <a class="nav-link d-inline" href="mailto:sadiq@devlify.com.ng">Contact</a>
-        </nav>
+        <a class="navbar-brand d-inline-flex" href="#home" aria-label="Foodwagon home">
+          <span class="foodwagon-wordmark">Foodwagon</span>
+        </a>
+        <button class="navbar-toggler foodwagon-mobile-toggle" type="button" data-foodwagon-nav-toggle aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse foodwagon-nav-content" id="navbarSupportedContent">
+          <ul class="navbar-nav foodwagon-nav-links mx-lg-auto" aria-label="Main navigation">
+            <li class="nav-item"><a class="nav-link active" href="#home" aria-current="page">Home</a></li>
+            <li class="nav-item"><a class="nav-link" href="#menu">Menu</a></li>
+            <li class="nav-item"><a class="nav-link" href="#services">Services</a></li>
+            <li class="nav-item"><a class="nav-link" href="#about">About</a></li>
+          </ul>
+          <div class="foodwagon-nav-actions">
+            <form class="foodwagon-nav-search" role="search" method="get" action="/">
+              <label class="visually-hidden" for="foodwagon-menu-search">Search the menu</label>
+              <div class="input-group-icon">
+                <svg class="input-box-icon" viewBox="0 0 24 24" width="19" height="19" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.6" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="m16 16 4.2 4.2" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="1.8"/></svg>
+                <input id="foodwagon-menu-search" class="form-control input-box" type="search" name="q" value="{{ query|default:'' }}" placeholder="Search food" aria-label="Search menu items">
+              </div>
+            </form>
+            <button class="foodwagon-cart-link" type="button" data-open-order aria-label="Open delivery and pickup options; ordering unavailable">
+              <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M6 8h12l1.2 12H4.8L6 8Z" fill="none" stroke="currentColor" stroke-linejoin="round" stroke-width="1.7"/><path d="M9 9V6a3 3 0 0 1 6 0v3" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="1.7"/></svg>
+            </button>
+            <button class="foodwagon-signup" type="button" data-open-account="Sign up">Sign up</button>
+            <button class="foodwagon-login" type="button" data-open-account="Log in">Log in</button>
+          </div>
+        </div>
       </div>
     </header>
-    <div class="alert alert-warning text-center mb-0" role="note">
-      <strong>SETUP NOTICE.</strong> Menu, prices, pickup/delivery details, fees, hours, and payment are not configured. No real order or payment can be placed.
-    </div>
     {% if messages %}<div class="container" aria-live="polite">{% for message in messages %}<div class="alert alert-info">{{ message }}</div>{% endfor %}</div>{% endif %}
     {% block content %}{% endblock %}
     <footer class="container py-5" id="about">
@@ -46,6 +68,36 @@
       <a href="/sitemap.xml">Sitemap</a>
     </footer>
   </main>
+
+  <dialog class="foodwagon-dialog" id="orderDialog" aria-labelledby="orderDialogTitle" aria-describedby="orderDialogDescription">
+    <div class="foodwagon-dialog__inner">
+      <button class="foodwagon-dialog__close" type="button" data-close-dialog aria-label="Close order options">×</button>
+      <p class="food-section-kicker">ORDERING PREVIEW</p>
+      <h2 id="orderDialogTitle">Delivery or pickup?</h2>
+      <p id="orderDialogDescription">Online ordering and payment are not available until Foodwagon's menu, service areas, address, fees, hours, and payment provider are configured.</p>
+      <div class="foodwagon-dialog__tabs" role="tablist" aria-label="Choose an order type">
+        <button type="button" role="tab" id="deliveryTab" aria-selected="true" aria-controls="deliveryPanel" data-order-tab="delivery">Delivery</button>
+        <button type="button" role="tab" id="pickupTab" aria-selected="false" aria-controls="pickupPanel" data-order-tab="pickup">Pickup</button>
+      </div>
+      <section id="deliveryPanel" role="tabpanel" aria-labelledby="deliveryTab" data-order-panel="delivery">
+        <h3>Delivery</h3><p>Delivery areas, address intake, and fees are not configured. No address is collected here.</p>
+      </section>
+      <section id="pickupPanel" role="tabpanel" aria-labelledby="pickupTab" data-order-panel="pickup" hidden>
+        <h3>Pickup</h3><p>A pickup location and opening hours are not configured. No personal details are collected here.</p>
+      </section>
+      <p class="foodwagon-dialog__footnote">This preview does not accept orders or payments.</p>
+    </div>
+  </dialog>
+
+  <dialog class="foodwagon-dialog foodwagon-dialog--account" id="accountDialog" aria-labelledby="accountDialogTitle">
+    <div class="foodwagon-dialog__inner">
+      <button class="foodwagon-dialog__close" type="button" data-close-dialog aria-label="Close account notice">×</button>
+      <p class="food-section-kicker">ACCOUNT PREVIEW</p>
+      <h2 id="accountDialogTitle">Customer accounts are not configured</h2>
+      <p>Sign-up and customer login are not available in this preview. No account details are requested or stored.</p>
+    </div>
+  </dialog>
+
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
   <script src="{% static 'js/theme.js' %}"></script>
   <script src="{% static 'js/foodwagon-refresh.js' %}"></script>

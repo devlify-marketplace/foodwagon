@@ -200,3 +200,59 @@ main.main { padding-top: 46px; }
   html { scroll-behavior: auto; }
   *,*::before,*::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; transition-duration: .01ms !important; }
 }
+
+
+/* Restored reference controls and truthful preview states. */
+.navbar .navbar-brand { display: flex; text-decoration: none; }
+.foodwagon-nav-content { display: flex; flex: 1 1 auto; align-items: center; }
+.foodwagon-nav-links { display: flex; list-style: none; padding-left: 0; }
+.foodwagon-nav-links .nav-item { margin: 0; }
+.foodwagon-mobile-toggle { display: none; }
+.foodwagon-signup { border: 1px solid #dfe8e1; border-radius: 999px; padding: .58rem 1rem; color: #163a29; background: #fff; font-size: .84rem; font-weight: 650; white-space: nowrap; }
+.foodwagon-signup:hover { border-color: var(--fw-green); color: var(--fw-green); }
+.foodwagon-login { white-space: nowrap; }
+.food-hero__doodles { opacity: .68; }
+.food-hero__setup { display: inline-flex; align-items: center; gap: .48rem; margin: -.72rem 0 .75rem; border: 1px solid #dce9de; border-radius: 999px; padding: .31rem .62rem; color: #3b5445; background: #f5faf5; font-size: .68rem; line-height: 1.25; }
+.food-hero__setup strong { color: var(--fw-green); font-size: .62rem; letter-spacing: .06em; }
+.food-section-kicker { margin: 0 0 .35rem; color: var(--fw-green); font-size: .7rem; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
+.food-dish-card__rating { border-radius: 999px; padding: .16rem .45rem; color: #fff; background: rgba(255,255,255,.18); font-size: .62rem; letter-spacing: .05em; }
+.food-dish-card__time { padding: 0 .55rem; font-size: .67rem; }
+.foodwagon-service-note { color: #59695f; }
+.foodwagon-service-note h2 { color: var(--fw-ink); font-size: clamp(1.4rem, 2.5vw, 2rem); font-weight: 750; }
+.foodwagon-service-note p:last-child { max-width: 780px; }
+.foodwagon-dialog { width: min(92vw, 540px); max-width: 540px; border: 0; border-radius: 22px; padding: 0; color: var(--fw-ink); background: #fff; box-shadow: 0 25px 70px rgba(8,40,24,.24); }
+.foodwagon-dialog::backdrop { background: rgba(12,24,17,.48); backdrop-filter: blur(3px); }
+.foodwagon-dialog__inner { position: relative; padding: 2rem; }
+.foodwagon-dialog__inner h2 { margin: 0 0 .55rem; color: var(--fw-ink); font-size: 1.55rem; font-weight: 750; }
+.foodwagon-dialog__inner p { color: #647269; line-height: 1.5; }
+.foodwagon-dialog__close { position: absolute; top: .85rem; right: .9rem; display: grid; width: 36px; height: 36px; place-items: center; border: 1px solid var(--fw-line); border-radius: 50%; color: #27372d; background: #fff; font-size: 1.35rem; }
+.foodwagon-dialog__tabs { display: flex; gap: .45rem; margin: 1.2rem 0 .9rem; border-bottom: 1px solid var(--fw-line); }
+.foodwagon-dialog__tabs button { border: 0; border-radius: 10px 10px 0 0; padding: .7rem .95rem; color: #69766d; background: transparent; font-weight: 700; }
+.foodwagon-dialog__tabs button[aria-selected="true"] { color: var(--fw-green); background: #e8f5ec; box-shadow: inset 0 -2px var(--fw-green); }
+.foodwagon-dialog [role="tabpanel"] { min-height: 82px; border-radius: 12px; padding: .9rem 1rem; background: #f7faf7; }
+.foodwagon-dialog [role="tabpanel"] h3 { margin: 0 0 .35rem; color: var(--fw-ink); font-size: 1rem; }
+.foodwagon-dialog [role="tabpanel"] p { margin: 0; font-size: .88rem; }
+.foodwagon-dialog .foodwagon-dialog__footnote { margin: .9rem 0 0; font-size: .78rem; }
+
+@media (max-width: 991.98px) {
+  .foodwagon-mobile-toggle { display: inline-flex; margin-left: auto; }
+  .foodwagon-nav-content { flex-basis: 100%; width: 100%; align-items: flex-start; flex-direction: column; gap: .45rem; padding-top: .6rem; }
+  .foodwagon-nav-content:not(.show) { display: none; }
+  .foodwagon-nav-content.show { display: flex; }
+  .foodwagon-nav-links { width: 100%; justify-content: flex-start; }
+  .foodwagon-nav-actions { width: 100%; flex-wrap: wrap; }
+  .foodwagon-nav-search:focus-within { width: min(150px, 38vw); flex-basis: min(150px, 38vw); }
+}
+@media (max-width: 575.98px) {
+  .foodwagon-dialog__inner { padding: 1.55rem 1.2rem 1.3rem; }
+  .foodwagon-nav-links { gap: .3rem; }
+  .foodwagon-nav-links .nav-link { padding-right: .35rem !important; padding-left: .35rem !important; }
+  .foodwagon-nav-actions { gap: .42rem; }
+  .foodwagon-signup,.foodwagon-login { padding: .5rem .75rem; font-size: .78rem; }
+  .food-hero__setup { max-width: 100%; font-size: .63rem; }
+  .food-category-area { margin-top: 1.85rem; }
+}
+
+@media (max-width: 575.98px) {
+  .food-category-track { flex: 0 0 160px; max-width: 160px; }
+}
